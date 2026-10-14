@@ -1,0 +1,487 @@
+
+Pass 1
+Line Statement                                Locn Opcode Addr  T  S          Dec Sex       Hex      
+---- ---------                                ---- ------ ----  -  -          --- ---       ---      
+   1 ; helloword.asm                          
+   2 ; prints strings using a print_string su 
+   3 ;                                        
+   4 ; A string comprises a series of 6-bit c 
+   5 ; The string is terminated by a stop cod 
+   6 ; The creator of the string must not mak 
+   7 ; The creator of the string must include 
+   8 ; To assemble a string:                  
+   9 ; string: .word shl(<code0>,2) + shl(<co 
+  10 ; .word shl(<code5>,2) + shl(<code6>,8)  
+  11 ; The first code in each word must resid 
+  12 ;                                        
+  13 ; Some help from the cross assembler wou 
+  14 ; e.g. .string <string_using_escape_code 
+  15 ; but not available at this time.        
+  16 ;                                        
+  17 ; Calling Convention:                    
+  18 ; Put b <address_of_string> in the accum 
+  19 ; Plant the return address at the end of 
+  20 ; Jump to print_string                   
+  21 ;                                        
+  22 ; Print String Procedure:                
+  23 ; Do until a stop code is found:         
+  24 ;   Print each character in the word     
+  25 ;   Index to the next word               
+  26 ; Return to caller                       
+  27 ;                                        
+  28 ; Notes:                                 
+  29 ; 1. The current word address, the loop  
+  30 ; 2. The equates hereunder provide the c 
+  31                                          
+  32     .locn   0                       ; lo locn =    0
+  33 main:                                    
+  34     b   arg1                        ; br 
+  35     r   print_string_end            ; pl 
+  36     u   print_string                ; ju 
+  37     b   arg2                        ; re 
+  38     r   print_string_end            ; pl 
+  39     u   print_string                ; ju 
+  40     z   0                           ; re 
+  41 arg1:                                    
+  42     b   my_1st_string               ; ou 
+  43 my_1st_string:                      ; He 
+  44     .word   shl(ucase,2)+shl(h,8)+shl(lc 
+  45     .word   shl(l,2)+shl(o,8)+shl(space, 
+  46     .word   shl(lcase,2)+shl(o,8)+shl(r, 
+  47     .word   shl(caret,2)+shl(stop,8)     
+  48 arg2:                                    
+  49     b   my_2nd_string               ; ou 
+  50 my_2nd_string:                      ; Go 
+  51     .word   shl(ucase,2)+shl(g,8)+shl(lc 
+  52     .word   shl(d,2)+shl(space,8)+shl(n, 
+  53     .word   shl(h,2)+shl(t,8)+shl(space, 
+  54     .word   shl(d,2)+shl(space,8)+shl(g, 
+  55     .word   shl(d,2)+shl(space,8)+shl(l, 
+  56     .word   shl(k,2)+shl(caret,8)+shl(st 
+  57                                     ;    
+  58 print_string:                            
+  59     h   outer_arg                   ; sa 
+  60                                     ;    
+  61 inner_loop:                              
+  62     b   counter_init                ; st 
+  63     h   counter                     ; in 
+  64 outer_arg:                               
+  65     .word   0                       ; ho 
+  66     h   inner_arg                   ; sa 
+  67                                          
+  68 continue_inner_loop:                     
+  69     e   code_mask                   ; ma 
+  70     h   code                        ; sa 
+  71     s   stop_code                   ; su 
+  72     t   not_stop_code               ; sk 
+  73     b   stop_code                   ; br 
+  74     s   code                        ; su 
+  75     t   not_stop_code               ; sk 
+  76     u   print_string_end            ; sk 
+  77 not_stop_code:                      ; no 
+  78     b   code                        ; re 
+  79     n   left_shift_6                ; sh 
+  80     a   p_instr                     ; ad 
+  81     h   pinstr_exec                 ; sa 
+  82 pinstr_exec:                             
+  83     .word   0                       ; ho 
+  84     b   inner_arg                   ; re 
+  85     m   right_shift_6               ; sh 
+  86     h   inner_arg                   ; sa 
+  87     b   counter                     ; re 
+  88     s   incdec                      ; su 
+  89     t   continue_outer_loop         ; sk 
+  90     h   counter                     ; sa 
+  91     b   inner_arg                   ; re 
+  92     u   continue_inner_loop         ; ju 
+  93                                     ;    
+  94 continue_outer_loop:                     
+  95     b   incdec                      ; co 
+  96     a   outer_arg                   ; ad 
+  97     h   outer_arg                   ; sa 
+  98     u   inner_loop                  ; re 
+  99                                          
+ 100 print_string_end:                        
+ 101     u   0                           ; en 
+ 102                                     ;    
+ 103 counter:        .word   0           ; th 
+ 104 inner_arg:      .word   0           ; in 
+ 105 code:           .word   0           ; th 
+ 106 counter_init:   .atq    4 29        ; CO 
+ 107 code_mask:      .word   0x000000fc  ; CO 
+ 108 stop_code:      .word   shl(stop,2) ; CO 
+ 109 left_shift_6:   .lshn   6           ; CO 
+ 110 p_instr:        p   0               ; CO 
+ 111 right_shift_6:  .rshm   6           ; CO 
+ 112 incdec:         .atq    1 29        ; CO 
+ 113                                     ;    
+ 114                                     ; CO 
+ 115     .equ    z   1                        z = 1
+ 116     .equ    rbrac   2                    rbrac = 2
+ 117     .equ    n0  2                        n0 = 2
+ 118     .equ    space   3                    space = 3
+ 119     .equ    lcase   4                    lcase = 4
+ 120     .equ    b   5                        b = 5
+ 121     .equ    l   6                        l = 6
+ 122     .equ    n1  6                        n1 = 6
+ 123     .equ    uscor   7                    uscor = 7
+ 124     .equ    minus   7                    minus = 7
+ 125     .equ    ucase   8                    ucase = 8
+ 126     .equ    y   9                        y = 9
+ 127     .equ    mul 10                       mul = 10
+ 128     .equ    n2  10                       n2 = 10
+ 129     .equ    eql 11                       eql = 11
+ 130     .equ    plus    11                   plus = 11
+ 131     .equ    colour  12                   colour = 12
+ 132     .equ    r   13                       r = 13
+ 133     .equ    quot    14                   quot = 14
+ 134     .equ    n3  14                       n3 = 14
+ 135     .equ    coln    15                   coln = 15
+ 136     .equ    scoln   15                   scoln = 15
+ 137     .equ    caret   16                   caret = 16
+ 138     .equ    i   17                       i = 17
+ 139     .equ    delta   18                   delta = 18
+ 140     .equ    n4  18                       n4 = 18
+ 141     .equ    ques    19                   ques = 19
+ 142     .equ    div 19                       div = 19
+ 143     .equ    bs  20                       bs = 20
+ 144     .equ    d   21                       d = 21
+ 145     .equ    pct 22                       pct = 22
+ 146     .equ    n5  22                       n5 = 22
+ 147     .equ    rsb 23                       rsb = 23
+ 148     .equ    fstop   23                   fstop = 23
+ 149     .equ    tab 24                       tab = 24
+ 150     .equ    n   25                       n = 25
+ 151     .equ    dol 26                       dol = 26
+ 152     .equ    n6  26                       n6 = 26
+ 153     .equ    lsb 27                       lsb = 27
+ 154     .equ    comma   27                   comma = 27
+ 155     .equ    m   29                       m = 29
+ 156     .equ    pi  30                       pi = 30
+ 157     .equ    n7  30                       n7 = 30
+ 158     .equ    v   31                       v = 31
+ 159     .equ    stop    32                   stop = 32
+ 160     .equ    p   33                       p = 33
+ 161     .equ    sigma   34                   sigma = 34
+ 162     .equ    n8  34                       n8 = 34
+ 163     .equ    o   35                       o = 35
+ 164     .equ    e   37                       e = 37
+ 165     .equ    lbrac   38                   lbrac = 38
+ 166     .equ    n9  38                       n9 = 38
+ 167     .equ    x   39                       x = 39
+ 168     .equ    u   41                       u = 41
+ 169     .equ    f   42                       f = 42
+ 170     .equ    t   45                       t = 45
+ 171     .equ    g   46                       g = 46
+ 172     .equ    h   49                       h = 49
+ 173     .equ    j   50                       j = 50
+ 174     .equ    c   53                       c = 53
+ 175     .equ    k   54                       k = 54
+ 176     .equ    a   57                       a = 57
+ 177     .equ    q   58                       q = 58
+ 178     .equ    s   61                       s = 61
+ 179     .equ    w   62                       w = 62
+ 180                                     ;    
+ 181     .end    main                         
+
+Symbol Table:
+------ ------
+main         :            0
+arg1         :            7
+my_1st_string :            8
+arg2         :           12
+my_2nd_string :           13
+print_string :           19
+inner_loop   :           20
+outer_arg    :           22
+continue_inner_loop :           24
+not_stop_code :           32
+pinstr_exec  :           36
+continue_outer_loop :           46
+print_string_end :           50
+counter      :           51
+inner_arg    :           52
+code         :           53
+counter_init :           54
+code_mask    :           55
+stop_code    :           56
+left_shift_6 :           57
+p_instr      :           58
+right_shift_6 :           59
+incdec       :           60
+z            :            1
+rbrac        :            2
+n0           :            2
+space        :            3
+lcase        :            4
+b            :            5
+l            :            6
+n1           :            6
+uscor        :            7
+minus        :            7
+ucase        :            8
+y            :            9
+mul          :           10
+n2           :           10
+eql          :           11
+plus         :           11
+colour       :           12
+r            :           13
+quot         :           14
+n3           :           14
+coln         :           15
+scoln        :           15
+caret        :           16
+i            :           17
+delta        :           18
+n4           :           18
+ques         :           19
+div          :           19
+bs           :           20
+d            :           21
+pct          :           22
+n5           :           22
+rsb          :           23
+fstop        :           23
+tab          :           24
+n            :           25
+dol          :           26
+n6           :           26
+lsb          :           27
+comma        :           27
+m            :           29
+pi           :           30
+n7           :           30
+v            :           31
+stop         :           32
+p            :           33
+sigma        :           34
+n8           :           34
+o            :           35
+e            :           37
+lbrac        :           38
+n9           :           38
+x            :           39
+u            :           41
+f            :           42
+t            :           45
+g            :           46
+h            :           49
+j            :           50
+c            :           53
+k            :           54
+a            :           57
+q            :           58
+s            :           61
+w            :           62
+
+Pass 2
+Line Statement                                Locn Opcode Addr  T  S          Dec Sex       Hex      
+---- ---------                                ---- ------ ----  -  -          --- ---       ---      
+   1 ; helloword.asm                          
+   2 ; prints strings using a print_string su 
+   3 ;                                        
+   4 ; A string comprises a series of 6-bit c 
+   5 ; The string is terminated by a stop cod 
+   6 ; The creator of the string must not mak 
+   7 ; The creator of the string must include 
+   8 ; To assemble a string:                  
+   9 ; string: .word shl(<code0>,2) + shl(<co 
+  10 ; .word shl(<code5>,2) + shl(<code6>,8)  
+  11 ; The first code in each word must resid 
+  12 ;                                        
+  13 ; Some help from the cross assembler wou 
+  14 ; e.g. .string <string_using_escape_code 
+  15 ; but not available at this time.        
+  16 ;                                        
+  17 ; Calling Convention:                    
+  18 ; Put b <address_of_string> in the accum 
+  19 ; Plant the return address at the end of 
+  20 ; Jump to print_string                   
+  21 ;                                        
+  22 ; Print String Procedure:                
+  23 ; Do until a stop code is found:         
+  24 ;   Print each character in the word     
+  25 ;   Index to the next word               
+  26 ; Return to caller                       
+  27 ;                                        
+  28 ; Notes:                                 
+  29 ; 1. The current word address, the loop  
+  30 ; 2. The equates hereunder provide the c 
+  31                                          
+  32     .locn   0                       ; lo locn =    0
+  33 main:                                    
+  34     b   arg1                        ; br    0 b         7  0  7        65564 0001 001j 0001 001c
+  35     r   print_string_end            ; pl    1 r        50  0 50       196808 0003 00j8 0003 00c8
+  36     u   print_string                ; ju    2 u        19  0 19       655436 000f 004j 000a 004c
+  37     b   arg2                        ; re    3 b        12  0 12        65584 0001 0030 0001 0030
+  38     r   print_string_end            ; pl    4 r        50  0 50       196808 0003 00j8 0003 00c8
+  39     u   print_string                ; ju    5 u        19  0 19       655436 000f 004j 000a 004c
+  40     z   0                           ; re    6 z         0  0  0            0 0000 0000 0000 0000
+  41 arg1:                                    
+  42     b   my_1st_string               ; ou    7 b         8  0  8        65568 0001 0020 0001 0020
+  43 my_1st_string:                      ; He 
+  44     .word   shl(ucase,2)+shl(h,8)+shl(lc    8                      441528608 1f51 3120 1a51 3120
+  45     .word   shl(l,2)+shl(o,8)+shl(space,    9                     4169196312 w880 q318 f880 e318
+  46     .word   shl(lcase,2)+shl(o,8)+shl(r,   10                     1415799568 5463 6310 5463 6310
+  47     .word   shl(caret,2)+shl(stop,8)       11                           8256 0000 2040 0000 2040
+  48 arg2:                                    
+  49     b   my_2nd_string               ; ou   12 b        13  0 13        65588 0001 0034 0001 0034
+  50 my_2nd_string:                      ; Go 
+  51     .word   shl(ucase,2)+shl(g,8)+shl(lc   13                     2385587744 8q31 2q20 8e31 2e20
+  52     .word   shl(d,2)+shl(space,8)+shl(n,   14                     3105243988 g916 4354 b916 4354
+  53     .word   shl(h,2)+shl(t,8)+shl(space,   15                     1737551300 6790 qkj4 6790 edc4
+  54     .word   shl(d,2)+shl(space,8)+shl(g,   16                     2386264916 8q3g 8354 8e3b 8354
+  55     .word   shl(d,2)+shl(space,8)+shl(l,   17                     3599860564 k691 8354 d691 8354
+  56     .word   shl(k,2)+shl(caret,8)+shl(st   18                         528600 0008 10k8 0008 10d8
+  57                                     ;    
+  58 print_string:                            
+  59     h   outer_arg                   ; sa   19 h        22  0 22       786520 000j 0058 000c 0058
+  60                                     ;    
+  61 inner_loop:                              
+  62     b   counter_init                ; st   20 b        54  0 54        65752 0001 00k8 0001 00d8
+  63     h   counter                     ; in   21 h        51  0 51       786636 000j 00jj 000c 00cc
+  64 outer_arg:                               
+  65     .word   0                       ; ho   22                              0 0000 0000 0000 0000
+  66     h   inner_arg                   ; sa   23 h        52  0 52       786640 000j 00k0 000c 00d0
+  67                                          
+  68 continue_inner_loop:                     
+  69     e   code_mask                   ; ma   24 e        55  0 55       590044 0009 00kj 0009 00dc
+  70     h   code                        ; sa   25 h        53  0 53       786644 000j 00k4 000c 00d4
+  71     s   stop_code                   ; su   26 s        56  0 56       983264 000w 00q0 000f 00e0
+  72     t   not_stop_code               ; sk   27 t        32  0 32       721024 000g 0080 000b 0080
+  73     b   stop_code                   ; br   28 b        56  0 56        65760 0001 00q0 0001 00e0
+  74     s   code                        ; su   29 s        53  0 53       983252 000w 00k4 000f 00d4
+  75     t   not_stop_code               ; sk   30 t        32  0 32       721024 000g 0080 000b 0080
+  76     u   print_string_end            ; sk   31 u        50  0 50       655560 000f 00j8 000a 00c8
+  77 not_stop_code:                      ; no 
+  78     b   code                        ; re   32 b        53  0 53        65748 0001 00k4 0001 00d4
+  79     n   left_shift_6                ; sh   33 n        57  0 57       393444 0006 00q4 0006 00e4
+  80     a   p_instr                     ; ad   34 a        58  0 58       917736 000q 00q8 000e 00e8
+  81     h   pinstr_exec                 ; sa   35 h        36  0 36       786576 000j 0090 000c 0090
+  82 pinstr_exec:                             
+  83     .word   0                       ; ho   36                              0 0000 0000 0000 0000
+  84     b   inner_arg                   ; re   37 b        52  0 52        65744 0001 00k0 0001 00d0
+  85     m   right_shift_6               ; sh   38 m        59  0 59       458988 0007 00qj 0007 00ec
+  86     h   inner_arg                   ; sa   39 h        52  0 52       786640 000j 00k0 000c 00d0
+  87     b   counter                     ; re   40 b        51  0 51        65740 0001 00jj 0001 00cc
+  88     s   incdec                      ; su   41 s        60  0 60       983280 000w 00w0 000f 00f0
+  89     t   continue_outer_loop         ; sk   42 t        46  0 46       721080 000g 00g8 000b 00b8
+  90     h   counter                     ; sa   43 h        51  0 51       786636 000j 00jj 000c 00cc
+  91     b   inner_arg                   ; re   44 b        52  0 52        65744 0001 00k0 0001 00d0
+  92     u   continue_inner_loop         ; ju   45 u        24  0 24       655456 000f 0060 000a 0060
+  93                                     ;    
+  94 continue_outer_loop:                     
+  95     b   incdec                      ; co   46 b        60  0 60        65776 0001 00w0 0001 00f0
+  96     a   outer_arg                   ; ad   47 a        22  0 22       917592 000q 0058 000e 0058
+  97     h   outer_arg                   ; sa   48 h        22  0 22       786520 000j 0058 000c 0058
+  98     u   inner_loop                  ; re   49 u        20  0 20       655440 000f 0050 000a 0050
+  99                                          
+ 100 print_string_end:                        
+ 101     u   0                           ; en   50 u         0  0  0       655360 000f 0000 000a 0000
+ 102                                     ;    
+ 103 counter:        .word   0           ; th   51                              0 0000 0000 0000 0000
+ 104 inner_arg:      .word   0           ; in   52                              0 0000 0000 0000 0000
+ 105 code:           .word   0           ; th   53                              0 0000 0000 0000 0000
+ 106 counter_init:   .atq    4 29        ; CO   54                             16 0000 0010 0000 0010
+ 107 code_mask:      .word   0x000000fc  ; CO   55                            252 0000 00wj 0000 00fc
+ 108 stop_code:      .word   shl(stop,2) ; CO   56                            128 0000 0080 0000 0080
+ 109 left_shift_6:   .lshn   6           ; CO   57                             64 0000 0040 0000 0040
+ 110 p_instr:        p   0               ; CO   58 p         0  0  0       524288 0008 0000 0008 0000
+ 111 right_shift_6:  .rshm   6           ; CO   59                       33554432 0200 0000 0200 0000
+ 112 incdec:         .atq    1 29        ; CO   60                              4 0000 0004 0000 0004
+ 113                                     ;    
+ 114                                     ; CO 
+ 180                                     ;    
+ 181     .end    main                         Start: 0
+
+Symbol Table:
+------ ------
+main         :            0
+arg1         :            7
+my_1st_string :            8
+arg2         :           12
+my_2nd_string :           13
+print_string :           19
+inner_loop   :           20
+outer_arg    :           22
+continue_inner_loop :           24
+not_stop_code :           32
+pinstr_exec  :           36
+continue_outer_loop :           46
+print_string_end :           50
+counter      :           51
+inner_arg    :           52
+code         :           53
+counter_init :           54
+code_mask    :           55
+stop_code    :           56
+left_shift_6 :           57
+p_instr      :           58
+right_shift_6 :           59
+incdec       :           60
+z            :            1
+rbrac        :            2
+n0           :            2
+space        :            3
+lcase        :            4
+b            :            5
+l            :            6
+n1           :            6
+uscor        :            7
+minus        :            7
+ucase        :            8
+y            :            9
+mul          :           10
+n2           :           10
+eql          :           11
+plus         :           11
+colour       :           12
+r            :           13
+quot         :           14
+n3           :           14
+coln         :           15
+scoln        :           15
+caret        :           16
+i            :           17
+delta        :           18
+n4           :           18
+ques         :           19
+div          :           19
+bs           :           20
+d            :           21
+pct          :           22
+n5           :           22
+rsb          :           23
+fstop        :           23
+tab          :           24
+n            :           25
+dol          :           26
+n6           :           26
+lsb          :           27
+comma        :           27
+m            :           29
+pi           :           30
+n7           :           30
+v            :           31
+stop         :           32
+p            :           33
+sigma        :           34
+n8           :           34
+o            :           35
+e            :           37
+lbrac        :           38
+n9           :           38
+x            :           39
+u            :           41
+f            :           42
+t            :           45
+g            :           46
+h            :           49
+j            :           50
+c            :           53
+k            :           54
+a            :           57
+q            :           58
+s            :           61
+w            :           62

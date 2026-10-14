@@ -1,0 +1,6 @@
+pyproject.toml
+src/hex2tape_lgp30/hex2tape.py
+src/hex2tape_lgp30.egg-info/PKG-INFO
+src/hex2tape_lgp30.egg-info/SOURCES.txt
+src/hex2tape_lgp30.egg-info/dependency_links.txt
+src/hex2tape_lgp30.egg-info/top_level.txt
