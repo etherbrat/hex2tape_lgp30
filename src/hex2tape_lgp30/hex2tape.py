@@ -169,7 +169,7 @@ def output_chunk(file, chunk):
     print(file = file)
 
 def output_start_header(file, start_addr):
-    print(f".000{value2sex(start_addr)[-4:]}'", file = file)
+    print(f".000{address2base64(start_addr)}'", file = file)
 
 def mem_to_tapefile(memory, start_addr, hexfile):
     tape_file = hexname_to_tapename(hexfile)
